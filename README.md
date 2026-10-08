@@ -5,7 +5,8 @@
 
 ## Как это устроено
 1. `parse_robochat.py` — читает сохранённый HTML/XML страницы редактора → `scenario.json` (шаги, кнопки, переходы).
-2. `build_n8n.py` — собирает из `scenario.json` → `n8n/kuks_bot.workflow.json`.
+2. `build_visual.py` — собирает из `scenario.json` → `n8n/kuks_bot.visual.workflow.json` (по ноде на шаг, кнопки — связи). `build_n8n.py` — компактный вариант в 8 нод → `n8n/kuks_bot.workflow.json`.
+   Схема сценария: [docs/SCENARIO.md](docs/SCENARIO.md) (`build_mermaid.py`).
 3. В n8n: Webhook → разбор update → Code-нода «Сценарий» (движок, сценарий зашит внутри) → цикл: сообщение / пауза / ответ на нажатие.
 
 ## Установка на втором Mac
@@ -21,6 +22,7 @@ pip install -r requirements.txt
 ## Пересборка workflow
 ```bash
 python parse_robochat.py kuks.xml -o scenario.json   # выгрузку кладёте в папку проекта
+python build_visual.py
 python build_n8n.py
 ```
 

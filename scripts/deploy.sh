@@ -6,6 +6,9 @@ cd "$(dirname "$0")/.."
 set -a; . ./.env; set +a
 : "${DOMAIN:?нужен DOMAIN в .env}" "${MAX_BOT_TOKEN:?нужен MAX_BOT_TOKEN в .env}" "${N8N_ENCRYPTION_KEY:?нужен N8N_ENCRYPTION_KEY в .env}"
 
+# Вариант workflow: visual (по ноде на шаг, по умолчанию) или compact (весь сценарий в одной ноде). Задаётся WORKFLOW_VARIANT в .env
+VARIANT="${WORKFLOW_VARIANT:-visual}"
+if [ "$VARIANT" = "compact" ]; then WF_FILE=kuks_bot.workflow.json; WF_ID=kuksbot0000000001; else WF_FILE=kuks_bot.visual.workflow.json; WF_ID=kuksbotvisual0001; fi
 DC="docker compose"
 $DC up -d
 echo ">> Жду запуска n8n"
@@ -19,9 +22,9 @@ printf '[{"id":"maxbot0000000001","name":"MAX Bot Token","type":"httpHeaderAuth"
   | $DC exec -T n8n sh -c 'cat > /tmp/cred.json && n8n import:credentials --input=/tmp/cred.json; rm -f /tmp/cred.json'
 
 echo ">> Workflow"
-$DC exec -T n8n n8n import:workflow --input=/import/kuks_bot.workflow.json
-$DC exec -T n8n n8n update:workflow --id=kuksbot0000000001 --active=true \
-  || $DC exec -T n8n n8n publish:workflow --id=kuksbot0000000001   # на новых версиях n8n команда называется иначе
+$DC exec -T n8n n8n import:workflow --input=/import/$WF_FILE
+$DC exec -T n8n n8n update:workflow --id=$WF_ID --active=true \
+  || $DC exec -T n8n n8n publish:workflow --id=$WF_ID   # на новых версиях n8n команда называется иначе
 $DC restart n8n   # чтобы webhook зарегистрировался
 sleep 10
 

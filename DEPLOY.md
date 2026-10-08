@@ -1,3 +1,9 @@
+> **Два варианта файла.** `n8n/kuks_bot.visual.workflow.json` — основной: по ноде на каждый шаг сценария, кнопки — связи между нодами
+> (82 ноды). `n8n/kuks_bot.workflow.json` — компактный (8 нод, сценарий внутри одной ноды). Скрипты по умолчанию ставят visual;
+> compact: `./scripts/import-to-existing.sh ИМЯ compact` или `WORKFLOW_VARIANT=compact` в `.env`.
+> У обоих один webhook `/webhook/max-bot`: **включайте только один**, иначе n8n откажется активировать второй.
+> В командах вручную ниже замените имя файла на `kuks_bot.visual.workflow.json`.
+
 # Если n8n и Docker на сервере уже стоят
 
 Новый стек и домен ставить не нужно: бот — это один файл `n8n/kuks_bot.workflow.json`. Нужно, чтобы ваш n8n был доступен из интернета по HTTPS (MAX шлёт на него webhook).
