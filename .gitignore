@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+.DS_Store
+.env
+# выгрузки Robochat и разбор: внутренние адреса, почты, ссылки
+kuks.xml
+kuksik.html
+*_files/
+scenario.json
+images/

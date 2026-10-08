@@ -1,0 +1,334 @@
+{
+  "id": "kuksbot0000000001",
+  "name": "Кукс-бот поддержки (MAX)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "max-bot",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "name": "MAX Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        300
+      ],
+      "webhookId": "kuks-max-bot"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Приводит update от MAX к единому виду: {type, user_id, first_name, text, callback_id, payload}\nconst u = $input.first().json.body ?? $input.first().json;\nconst t = u.update_type;\n\nif (t === 'message_callback') {\n  return [{ json: {\n    type: 'callback',\n    user_id: u.callback.user.user_id,\n    first_name: u.callback.user.first_name,\n    callback_id: u.callback.callback_id,\n    payload: u.callback.payload,\n  } }];\n}\nif (t === 'bot_started') {\n  return [{ json: { type: 'start', user_id: u.user.user_id, first_name: u.user.first_name } }];\n}\nif (t === 'message_created') {\n  const m = u.message;\n  if (!m.sender || m.sender.is_bot) return [];\n  return [{ json: {\n    type: 'text',\n    user_id: m.sender.user_id,\n    first_name: m.sender.first_name,\n    text: m.body?.text ?? '',\n  } }];\n}\nreturn []; // остальные типы событий игнорируем\n"
+      },
+      "name": "Разбор update",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Движок сценария Robochat → n8n. Сценарий подставляется генератором build_n8n.py.\nconst SCENARIO = {\"start\": \"s35\", \"keywords\": [{\"word\": \"Здравствуйте\", \"to\": \"s35\"}, {\"word\": \"Добрый день\", \"to\": \"s35\"}, {\"word\": \"В начало\", \"to\": \"s35\"}, {\"word\": \"интернет\", \"to\": \"s9\"}, {\"word\": \"Привет\", \"to\": \"s35\"}, {\"word\": \"/start\", \"to\": \"s35\"}, {\"word\": \"Начало\", \"to\": \"s35\"}, {\"word\": \"start\", \"to\": \"s35\"}, {\"word\": \"старт\", \"to\": \"s35\"}], \"steps\": {\"s0\": {\"title\": \"Заказ QR\", \"blocks\": [{\"t\": \"msg\", \"text\": \"Заказ QR\", \"buttons\": [{\"text\": \"Назад\", \"to\": \"s25\"}, {\"text\": \"В начало\", \"to\": \"s26\"}, {\"text\": \"Заявка в Service Desk\", \"to\": \"s18\"}]}], \"next\": null}, \"s1\": {\"title\": \"Печать ценников чере\", \"blocks\": [{\"t\": \"msg\", \"text\": \"Печать ценников через пред.просмотр\", \"buttons\": [{\"text\": \"Назад\", \"to\": \"s25\"}, {\"text\": \"В начало\", \"to\": \"s26\"}, {\"text\": \"Заявка в Service Desk\", \"to\": \"s18\"}]}], \"next\": null}, \"s2\": {\"title\": \"Приёмка товара ордер\", \"blocks\": [{\"t\": \"msg\", \"text\": \"https://disk.yandex.ru/client/disk/%D0%90%D0%BA%D1%82%D1%8B%20%D1%80%D0%B0%D1%81%D1%85%D0%BE%D0%B6%D0%B4%D0%B5%D0%BD%D0%B8%D0%B9\", \"buttons\": [{\"text\": \"Назад\", \"to\": \"s25\"}, {\"text\": \"В начало\", \"to\": \"s26\"}, {\"text\": \"Заявка в Service Desk\", \"to\": \"s18\"}]}], \"next\": null}, \"s3\": {\"title\": \"Проблемный чек\", \"blocks\": [{\"t\": \"msg\", \"text\": \"Проблемный чек\", \"buttons\": [{\"text\": \"Назад\", \"to\": \"s25\"}, {\"text\": \"В начало\", \"to\": \"s26\"}, {\"text\": \"Заявка в Service Desk\", \"to\": \"s18\"}]}], \"next\": null}, \"s4\": {\"title\": \"ИБП (Источник беспер\", \"blocks\": [{\"t\": \"msg\", \"text\": \"Если ИБП издаёт звуковые сигналы, необходимо выключить его на 10 минут, вытащить из него все подключенные приборы и затем заново подключить. Если звуковые сигналы возникли вновь, необходима замена аккумуляторной батареи.\\nВ этом случае сделайте заявку на sd@modi.ru\", \"buttons\": [{\"text\": \"Назад\", \"to\": \"s6\"}, {\"text\": \"В начало\", \"to\": \"s26\"}, {\"text\": \"Заявка в Service Desk\", \"to\": \"s18\"}]}], \"next\": null}, \"s5\": {\"title\": \"Сертификаты\", \"blocks\": [{\"t\": \"delay\", \"seconds\": 3}, {\"t\": \"msg\", \"text\": \"https://www.modi.ru/service/gift-cards/\", \"buttons\": [{\"text\": \"Назад\", \"to\": \"s25\"}, {\"text\": \"В начало\", \"to\": \"s26\"}, {\"text\": \"Заявка в Service Desk\", \"to\": \"s18\"}]}], \"next\": null}, \"s6\": {\"title\": \"Проблемы с оборудова\", \"blocks\": [{\"t\": \"delay\", \"seconds\": 5}, {\"t\": \"msg\", \"text\": \"С каким оборудованием проблемы?\", \"buttons\": [{\"text\": \"Компьютер директора\", \"to\": \"s34\"}, {\"text\": \"Касса\", \"to\": \"s34\"}, {\"text\": \"Эквайринг\", \"to\": \"s11\"}, {\"text\": \"Видеонаблюдение\", \"to\": \"s21\"}, {\"text\": \"Принтер\", \"to\": \"s19\"}, {\"text\": \"ТСД\", \"to\": \"s37\"}, {\"text\": \"ИБП (Источник бесперебойного питания)\", \"to\": \"s4\"}, {\"text\": \"Сканер штрих кодов\", \"to\": \"s28\"}, {\"text\": \"Назад\", \"to\": \"s26\"}]}], \"next\": null}, \"s7\": {\"title\": \"Проблемы с интернето\", \"blocks\": [{\"t\": \"notify\"}], \"next\": \"s8\"}, \"s8\": {\"title\": \"Сообщение #2\", \"blocks\": [{\"t\": \"delay\", \"seconds\": 5}, {\"t\": \"msg\", \"text\": \"Что конкретно?\", \"buttons\": [{\"text\": \"Нет интернета\", \"to\": \"s9\"}, {\"text\": \"Медленный интернет\", \"to\": \"s10\"}, {\"text\": \"В начало\", \"to\": \"s26\"}]}], \"next\": null}, \"s9\": {\"title\": \"Проблемы с интернето\", \"blocks\": [{\"t\": \"delay\", \"seconds\": 5}, {\"t\": \"msg\", \"text\": \"Есть ли индикция на роутере Mikrotik ?\", \"buttons\": [{\"text\": \"Индикация есть\", \"to\": \"s16\"}, {\"text\": \"Индикации нет\", \"to\": \"s39\"}, {\"text\": \"В начало\", \"to\": \"s26\"}]}], \"next\": null}, \"s10\": {\"title\": \"Медленный интернет\", \"blocks\": [{\"t\": \"msg\", \"text\": \"Перезагрузите роутер Mikrotik\", \"buttons\": []}], \"next\": \"s30\"}, \"s11\": {\"title\": \"Эквайринг\", \"blocks\": [{\"t\": \"msg\", \"text\": \"Выберите пункт\", \"buttons\": [{\"text\": \"Ошибка 4128\", \"to\": \"s38\"}, {\"text\": \"Ошибка D3h\", \"to\": \"s23\"}, {\"text\": \"Назад\", \"to\": \"s6\"}, {\"text\": \"В начало\", \"to\": \"s26\"}]}], \"next\": null}, \"s12\": {\"title\": \"Да, интернет появилс\", \"blocks\": [{\"t\": \"msg\", \"text\": \"У вас остались вопросы?\", \"buttons\": [{\"text\": \"Да\", \"to\": \"s26\"}, {\"text\": \"Нет\", \"to\": \"s27\"}]}], \"next\": null}, \"s13\": {\"title\": \"Розетку поменяли\", \"blocks\": [{\"t\": \"msg\", \"text\": \"Интернет появился?\", \"buttons\": [{\"text\": \"Да, интернет появился\", \"to\": \"s12\"}, {\"text\": \"Нет, интернет не появился\", \"to\": \"s32\"}]}], \"next\": null}, \"s14\": {\"title\": \"Действие\", \"blocks\": [{\"t\": \"notify\"}], \"next\": null}, \"s15\": {\"title\": \"Сверка итогов\", \"blocks\": [{\"t\": \"msg\", \"text\": \"Сверка итогов\", \"buttons\": [{\"text\": \"Назад\", \"to\": \"s25\"}, {\"text\": \"В начало\", \"to\": \"s26\"}, {\"text\": \"Заявка в Service Desk\", \"to\": \"s18\"}]}], \"next\": null}, \"s16\": {\"title\": \"Индикация есть\", \"blocks\": [{\"t\": \"delay\", \"seconds\": 5}, {\"t\": \"msg\", \"text\": \"Перезагружали роутер Mikrotik?\", \"buttons\": [{\"text\": \"Да, не помогло\", \"to\": \"s32\"}, {\"text\": \"Нет, сейчас перезагрузим\", \"to\": \"s30\"}, {\"text\": \"А как это сделать?\", \"to\": \"s30\"}, {\"text\": \"В начало\", \"to\": \"s26\"}]}], \"next\": null}, \"s18\": {\"title\": \"Заявка в ServiceDesk\", \"blocks\": [{\"t\": \"msg\", \"text\": \"Перейдите по ссылке и заполните форму заявки www.modi.ru/sd\", \"buttons\": [{\"text\": \"В начало\", \"to\": \"s26\"}]}], \"next\": null}, \"s19\": {\"title\": \"Принтер\", \"blocks\": [{\"t\": \"msg\", \"text\": \"Если вам не подходят данные пункты, сделайте заявку в Service Desk.\", \"buttons\": [{\"text\": \"Замятие бумаги\", \"to\": \"s29\"}, {\"text\": \"Заказ картриджа\", \"to\": \"s22\"}, {\"text\": \"Назад\", \"to\": \"s6\"}, {\"text\": \"В начало\", \"to\": \"s26\"}, {\"text\": \"Заявка в Service Desk\", \"to\": \"s18\"}]}], \"next\": null}, \"s20\": {\"title\": \"Сообщение #1\", \"blocks\": [{\"t\": \"msg\", \"text\": \"Перезагрузили?\", \"buttons\": [{\"text\": \"Да, интернет появился\", \"to\": \"s12\"}, {\"text\": \"Да, интернет не появился\", \"to\": \"s32\"}]}], \"next\": null}, \"s21\": {\"title\": \"Видеонаблюдение\", \"blocks\": [{\"t\": \"msg\", \"text\": \"По вопросам неисправности видеонаблюдения сделайте заявку на sd@modi.ru\\nПо вопросам переноса камер, добавления, изменения угла обзора и т.п., необходимо обратиться в Службу Безопасности к Сергею Завьялову.\", \"buttons\": [{\"text\": \"Назад\", \"to\": \"s6\"}, {\"text\": \"В начало\", \"to\": \"s26\"}, {\"text\": \"Заявка в Service Desk\", \"to\": \"s18\"}]}], \"next\": null}, \"s22\": {\"title\": \"Заказ картриджа\", \"blocks\": [{\"t\": \"msg\", \"text\": \"Для заказа картриджа необходимо написать письмо на sd@modi.ru с просьбой выслать ссылку на картридж в Комусе. В письме необходимо указать модель вашего МФУ. В копию письма поставить Маргариту Артюшкову m.artyshkova@modi.ru\", \"buttons\": [{\"text\": \"Назад\", \"to\": \"s19\"}, {\"text\": \"В начало\", \"to\": \"s26\"}]}], \"next\": null}, \"s23\": {\"title\": \"Отмена операции по э\", \"blocks\": [{\"t\": \"msg\", \"text\": \"Отмена операции по эквайрингу\", \"buttons\": [{\"text\": \"Назад\", \"to\": \"s25\"}, {\"text\": \"В начало\", \"to\": \"s26\"}, {\"text\": \"Заявка в Service Desk\", \"to\": \"s18\"}]}], \"next\": null}, \"s25\": {\"title\": \"Проблемы с 1С\", \"blocks\": [{\"t\": \"msg\", \"text\": \"Выберите пункт\", \"buttons\": [{\"text\": \"Сверка итогов\", \"to\": \"s15\"}, {\"text\": \"Проблемный чек\", \"to\": \"s3\"}, {\"text\": \"Заказ QR\", \"to\": \"s0\"}, {\"text\": \"Работа с новым ТСД АТОЛ\", \"to\": \"s37\"}, {\"text\": \"Приёмка товара ордерная\", \"to\": \"s2\"}, {\"text\": \"Сертификаты\", \"to\": \"s5\"}, {\"text\": \"Печать ценников через пред.просмотр\", \"to\": \"s1\"}, {\"text\": \"Возврат при оплате по QR-коду\", \"to\": \"s40\"}, {\"text\": \"Отмена по эквайрингу (Ошибка  D3h)\", \"to\": \"s23\"}, {\"text\": \"В начало\", \"to\": \"s26\"}]}], \"next\": null}, \"s26\": {\"title\": \"Назад\", \"blocks\": [{\"t\": \"msg\", \"text\": \"{{first name}}, выберите необходимый пункт.\\n\\n   Но перед тем как выбрать пункт, необходимо помнить, что большинство неисправностей лечится перезагрузкой оборудования.\\n\\n   Выберите необходимый пункт по вашей неисправности. Если вашей неисправности нет в списке, сделайте заявку с описанием проблемы и при необходимости приложите фото/скриншот, кликнув по ссылке: www.new.modi.ru/sd\", \"buttons\": [{\"text\": \"Проблемы с интернетом\", \"to\": \"s7\"}, {\"text\": \"Проблемы с оборудованием\", \"to\": \"s6\"}, {\"text\": \"Проблемы с 1С\", \"to\": \"s25\"}, {\"text\": \"Заявка в Service Desk\", \"to\": \"s33\"}]}], \"next\": null}, \"s27\": {\"title\": \"Нет\", \"blocks\": [{\"t\": \"msg\", \"text\": \"Были рады помочь. Хороших продаж!\", \"buttons\": [{\"text\": \"В начало\", \"to\": \"s26\"}]}], \"next\": null}, \"s28\": {\"title\": \"Сканер штрих кодов\", \"blocks\": [{\"t\": \"msg\", \"text\": \"Если у вас не работает сканер штрих кодов, либо работает некорректно, вытащите USB провод сканера из кассового моноблока и вставьте обратно. Проверьте работоспособность сканера. Если так же не заработал, подключите к другому USB порту на кассовом моноблоке.\\n\\nЕсли всё равно не работает, сделайте заявку на sd@modi.ru\", \"buttons\": [{\"text\": \"Назад\", \"to\": \"s6\"}, {\"text\": \"В начало\", \"to\": \"s26\"}, {\"text\": \"Заявка в Service Desk\", \"to\": \"s18\"}]}], \"next\": null}, \"s29\": {\"title\": \"Замятие бумаги\", \"blocks\": [{\"t\": \"msg\", \"text\": \"Инструкция по устранению замятия на МФУ HP 137\\nhttps://www.youtube.com/watch?v=YNrJ4CVN5OM\\n\\nИнструкция по устранению замятия на МФУ HP 426 и HP 428\\nhttps://www.youtube.com/watch?v=e5NssR_zkLQ\", \"buttons\": [{\"text\": \"Назад\", \"to\": \"s19\"}, {\"text\": \"В начало\", \"to\": \"s26\"}, {\"text\": \"Заявка в Service Desk\", \"to\": \"s18\"}]}], \"next\": null}, \"s30\": {\"title\": \"А как это сделать?\", \"blocks\": [{\"t\": \"delay\", \"seconds\": 5}, {\"t\": \"msg\", \"text\": \"Отключите провод питания от роутера на 10 секунд и подключите заново (прогружается он в течении 2-х минут).\", \"buttons\": []}], \"next\": \"s20\"}, \"s31\": {\"title\": \"Не включается\", \"blocks\": [{\"t\": \"msg\", \"text\": \"Проверьте питание. В розетку, в которую включен питающий шнур от компьютера, включите зарядку от телефона. Если телефон не заряжается, поменяйте розетку.\\nОбратите внимание, если компьютер включен через ИБП (источник бесперебойного питания), работает ли он (на ИБП должны светиться индикаторы).\\nВытащите вилку из розетки, подождите 10 секунд, подключите заново.\\n\\nПомогло?\", \"buttons\": [{\"text\": \"Помогло\", \"to\": \"s27\"}, {\"text\": \"Не помогло\", \"to\": \"s36\"}]}], \"next\": null}, \"s32\": {\"title\": \"Да, интернет не появ\", \"blocks\": [{\"t\": \"msg\", \"text\": \"Вставьте USB-модем в роутер Mikrotik.\\nДалее перейдите по ссылке и сделайте заявку в техподдержку:\\nwww.modi.ru/sd\", \"buttons\": [{\"text\": \"В начало\", \"to\": \"s26\"}]}], \"next\": null}, \"s33\": {\"title\": \"Заявка в Service Des\", \"blocks\": [{\"t\": \"notify\"}], \"next\": \"s26\"}, \"s34\": {\"title\": \"Компьютер директора\", \"blocks\": [{\"t\": \"msg\", \"text\": \"В чём проблема?\", \"buttons\": [{\"text\": \"Не включается\", \"to\": \"s31\"}, {\"text\": \"Тормозит\", \"to\": \"s36\"}, {\"text\": \"Издаёт посторонние звуки\", \"to\": \"s36\"}, {\"text\": \"Назад\", \"to\": \"s6\"}]}], \"next\": null}, \"s35\": {\"title\": \"Старт\", \"blocks\": [{\"t\": \"delay\", \"seconds\": 5}, {\"t\": \"input\", \"text\": \"Здравствуйте, {{first name}}!\\nВведите номер и название магазина, причину обращения, а затем выберите пункт меню.\\n\\nОтзывы и предложения отправляйте на sd@modi.ru с темой \\\"Доработка телеграм бота\\\"\", \"save_to\": \"NameShop\"}, {\"t\": \"delay\", \"seconds\": 3}], \"next\": \"s26\"}, \"s36\": {\"title\": \"Тормозит\", \"blocks\": [{\"t\": \"msg\", \"text\": \"Перейдите по ссылке и заполните форму заявки www.modi.ru/sd\", \"buttons\": [{\"text\": \"В начало\", \"to\": \"s26\"}, {\"text\": \"Заявка в Service Desk\", \"to\": \"s18\"}]}], \"next\": null}, \"s37\": {\"title\": \"Работа с новым ТСД А\", \"blocks\": [{\"t\": \"msg\", \"text\": \"ТСД АТОЛ\", \"buttons\": [{\"text\": \"Назад\", \"to\": \"s25\"}, {\"text\": \"В начало\", \"to\": \"s26\"}, {\"text\": \"Заявка в Service Desk\", \"to\": \"s18\"}]}], \"next\": null}, \"s38\": {\"title\": \"Ошибка 4128\", \"blocks\": [{\"t\": \"msg\", \"text\": \"Для исправления ошибки 4128 необходимо позвонить в службу поддержки эквайринга СБЕРа по номеру 88003500123 и сделать заявку.\", \"buttons\": [{\"text\": \"Назад\", \"to\": \"s11\"}, {\"text\": \"В начало\", \"to\": \"s26\"}]}], \"next\": null}, \"s39\": {\"title\": \"Индикации нет\", \"blocks\": [{\"t\": \"msg\", \"text\": \"Проверьте поступает ли питание на роутер, переключите роутер в другую розетку. \\nЕсли роутер включен в ИБП (источник бесперебойного питания), проверьте включен ли он.\\nПосле переключения розетки, если индикация появилась, подождите 2 минуты и проверьте интернет.\", \"buttons\": [{\"text\": \"Розетку поменяли\", \"to\": \"s13\"}]}], \"next\": null}, \"s40\": {\"title\": \"Возврат при оплате п\", \"blocks\": [{\"t\": \"msg\", \"text\": \"Возврат при оплате п\", \"buttons\": [{\"text\": \"Назад\", \"to\": \"s25\"}, {\"text\": \"В начало\", \"to\": \"s26\"}, {\"text\": \"Заявка в Service Desk\", \"to\": \"s18\"}]}], \"next\": null}}};\n\n// Кому слать уведомления «Заявка в Service Desk»: user_id в MAX через запятую в .env (ADMIN_USER_IDS). Пусто = не слать.\nconst ADMIN_USER_IDS = String($env.ADMIN_USER_IDS || '').split(',').map(s => s.trim()).filter(Boolean).map(Number);\nconst MAX_CHAIN = 25; // защита от зацикливания «Следующий шаг»\n\nconst upd = $input.first().json;\nconst store = $getWorkflowStaticData('global');\nstore.users = store.users || {};\nconst user = (store.users[upd.user_id] = store.users[upd.user_id] || { vars: {} });\nif (upd.first_name) user.vars['first name'] = upd.first_name;\n\nconst actions = [];\nconst say = (text, buttons) => {\n  const body = { text };\n  if (buttons && buttons.length) {\n    body.attachments = [{\n      type: 'inline_keyboard',\n      payload: { buttons: buttons.map(b => [{ type: 'callback', text: b.text, payload: 'go:' + b.to }]) },\n    }];\n  }\n  actions.push({ kind: 'send', user_id: upd.user_id, body });\n};\nconst fill = t => t.replace(/\\{\\{([^}]+)\\}\\}/g, (_, k) => user.vars[k.trim()] ?? '');\n\n// Выполняет блоки шага начиная с индекса from; идёт по «Следующему шагу».\nfunction run(stepId, from = 0, depth = 0) {\n  const step = SCENARIO.steps[stepId];\n  if (!step || depth > MAX_CHAIN) return;\n  for (let i = from; i < step.blocks.length; i++) {\n    const b = step.blocks[i];\n    if (b.t === 'delay') {\n      actions.push({ kind: 'delay', seconds: b.seconds });\n    } else if (b.t === 'msg') {\n      if (b.text.trim()) say(fill(b.text), b.buttons);\n      else if (b.buttons.length) say('Выберите пункт', b.buttons);\n    } else if (b.t === 'input') {\n      say(fill(b.text));\n      user.resume = { step: stepId, block: i + 1, save_to: b.save_to };\n      return; // ждём ответ пользователя\n    } else if (b.t === 'notify') {\n      const info = `Заявка из бота: ${step.title}\\nПользователь: ${upd.first_name || ''} (id ${upd.user_id})\\n` +\n        `Магазин/обращение: ${user.vars.NameShop || '—'}`;\n      for (const id of ADMIN_USER_IDS) actions.push({ kind: 'send', user_id: id, body: { text: info } });\n    }\n  }\n  if (step.next) run(step.next, 0, depth + 1);\n}\n\nconst text = (upd.text || '').trim();\nif (upd.type === 'callback') {\n  if (upd.callback_id) actions.push({ kind: 'ack', callback_id: upd.callback_id });\n  const target = String(upd.payload || '').replace(/^go:/, '');\n  if (SCENARIO.steps[target]) { delete user.resume; run(target); }\n} else {\n  const low = text.toLowerCase();\n  const kw = upd.type === 'start'\n    ? { to: SCENARIO.start }\n    : SCENARIO.keywords.find(k => low.includes(k.word.toLowerCase()));\n  if (kw) {\n    delete user.resume;\n    run(kw.to);\n  } else if (user.resume) {\n    const r = user.resume;\n    delete user.resume;\n    user.vars[r.save_to] = text;\n    run(r.step, r.block);\n  } else {\n    run(SCENARIO.start); // непонятный текст — начинаем сначала\n  }\n}\n\nreturn actions.map(a => ({ json: a }));\n"
+      },
+      "name": "Сценарий",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "name": "По одному",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        660,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.kind }}",
+                    "rightValue": "send",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "send"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.kind }}",
+                    "rightValue": "delay",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "delay"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.kind }}",
+                    "rightValue": "ack",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "ack"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Тип действия",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        880,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://platform-api.max.ru/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "options": {},
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "user_id",
+              "value": "={{ $json.user_id }}"
+            }
+          ]
+        }
+      },
+      "name": "Отправить сообщение",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1120,
+        140
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "maxbot0000000001",
+          "name": "MAX Bot Token"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": "={{ $json.seconds }}",
+        "unit": "seconds"
+      },
+      "name": "Пауза",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1120,
+        300
+      ],
+      "webhookId": "kuks-max-wait"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://platform-api.max.ru/answers",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ notification: ' ' }) }}",
+        "options": {},
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "callback_id",
+              "value": "={{ $json.callback_id }}"
+            }
+          ]
+        }
+      },
+      "name": "Ответ на нажатие",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1120,
+        460
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "maxbot0000000001",
+          "name": "MAX Bot Token"
+        }
+      },
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "connections": {
+    "MAX Webhook": {
+      "main": [
+        [
+          {
+            "node": "Разбор update",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Разбор update": {
+      "main": [
+        [
+          {
+            "node": "Сценарий",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Сценарий": {
+      "main": [
+        [
+          {
+            "node": "По одному",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "По одному": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Тип действия",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Тип действия": {
+      "main": [
+        [
+          {
+            "node": "Отправить сообщение",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Пауза",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Ответ на нажатие",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Отправить сообщение": {
+      "main": [
+        [
+          {
+            "node": "По одному",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Пауза": {
+      "main": [
+        [
+          {
+            "node": "По одному",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ответ на нажатие": {
+      "main": [
+        [
+          {
+            "node": "По одному",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "active": false,
+  "pinData": {}
+}

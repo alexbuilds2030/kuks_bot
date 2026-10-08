@@ -1,0 +1,36 @@
+services:
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:latest
+    restart: unless-stopped
+    environment:
+      - N8N_HOST=${DOMAIN}
+      - N8N_PROTOCOL=https
+      - WEBHOOK_URL=https://${DOMAIN}/
+      - N8N_PROXY_HOPS=1
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
+      - GENERIC_TIMEZONE=${TZ:-Europe/Moscow}
+      - TZ=${TZ:-Europe/Moscow}
+      # Code-нода читает ADMIN_USER_IDS из окружения
+      - N8N_BLOCK_ENV_ACCESS_IN_NODE=false
+      - ADMIN_USER_IDS=${ADMIN_USER_IDS:-}
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - ./n8n:/import:ro
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - DOMAIN=${DOMAIN}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+    depends_on:
+      - n8n
+
+volumes:
+  n8n_data:
+  caddy_data:
