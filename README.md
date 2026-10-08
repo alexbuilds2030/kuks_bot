@@ -25,6 +25,8 @@ python build_n8n.py
 ```
 
 ## Развёртывание на VPS (Ubuntu/Debian)
+Полная пошаговая инструкция для чистой машины: [DEPLOY.md](DEPLOY.md).
+
 Нужно: VPS с публичным IP и домен, A-запись которого указывает на этот IP (для HTTPS, без него MAX не пришлёт webhook).
 ```bash
 git clone <URL репозитория> kuks_bot
