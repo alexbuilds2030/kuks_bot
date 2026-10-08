@@ -1,3 +1,30 @@
+# Если n8n и Docker на сервере уже стоят
+
+Новый стек и домен ставить не нужно: бот — это один файл `n8n/kuks_bot.workflow.json`. Нужно, чтобы ваш n8n был доступен из интернета по HTTPS (MAX шлёт на него webhook).
+
+## Вариант А. Одной командой
+```bash
+git clone https://github.com/alexbuilds2030/kuks_bot.git && cd kuks_bot
+docker ps --format '{{.Names}}'                      # узнать имя контейнера n8n
+./scripts/import-to-existing.sh ИМЯ_КОНТЕЙНЕРА
+```
+Спросит токен бота (скрыт) и публичный адрес n8n. Загрузит токен и workflow, включит его, перезапустит n8n (несколько секунд простоя для других workflow) и подпишет бота на webhook.
+
+## Вариант Б. Вручную через интерфейс n8n (без перезапуска)
+1. Скачайте файл на свой компьютер: `scp root@IP:~/kuks_bot/n8n/kuks_bot.workflow.json .` (или откройте его на GitHub → Raw → скопируйте).
+2. n8n → **Workflows → ⋯ → Import from File** (или вставьте JSON через Ctrl+V прямо на холст).
+3. **Credentials → Create → Header Auth**: имя `MAX Bot Token`, Name `Authorization`, Value — токен бота. В нодах «Отправить сообщение» и «Ответ на нажатие» выберите этот credential.
+4. Включите переключатель **Active**. Откройте ноду «MAX Webhook» и скопируйте **Production URL**.
+5. Подпишите бота (команда с сервера или с любого компьютера):
+```bash
+curl -X POST https://platform-api.max.ru/subscriptions \
+  -H "Authorization: ТОКЕН_БОТА" -H "Content-Type: application/json" \
+  -d '{"url":"PRODUCTION_URL_ИЗ_ШАГА_4","update_types":["message_created","message_callback","bot_started"]}'
+```
+6. Уведомления о заявках: в ноде «Сценарий» впишите id в `adminIds` (например `'111,222'`) либо задайте `ADMIN_USER_IDS` в окружении n8n.
+
+---
+
 # Развёртывание на чистой Ubuntu (пошагово)
 
 Проверено логикой скриптов; на реальной машине ещё не гонялось — если что-то упадёт, пришлите последние строки вывода.

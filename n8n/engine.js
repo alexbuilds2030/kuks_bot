@@ -1,8 +1,11 @@
 // Движок сценария Robochat → n8n. Сценарий подставляется генератором build_n8n.py.
 const SCENARIO = __SCENARIO__;
 
-// Кому слать уведомления «Заявка в Service Desk»: user_id в MAX через запятую в .env (ADMIN_USER_IDS). Пусто = не слать.
-const ADMIN_USER_IDS = String($env.ADMIN_USER_IDS || '').split(',').map(s => s.trim()).filter(Boolean).map(Number);
+// Кому слать уведомления «Заявка в Service Desk» (user_id в MAX через запятую).
+// Берётся из ADMIN_USER_IDS в окружении n8n; если доступ к env закрыт — впишите id сюда: '111,222'
+let adminIds = '';
+try { adminIds = $env.ADMIN_USER_IDS || ''; } catch (e) { /* env заблокирован */ }
+const ADMIN_USER_IDS = String(adminIds || '').split(',').map(s => s.trim()).filter(Boolean).map(Number);
 const MAX_CHAIN = 25; // защита от зацикливания «Следующий шаг»
 
 const upd = $input.first().json;
